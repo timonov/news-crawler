@@ -13,8 +13,7 @@ class NewsSpider(scrapy.Spider):
         self.years = ['2017'] if years is None else years           # 2016,2015
         self.months = ['03', '04'] if months is None else months    # 01,02, .., 12
         self.days = [['26', '29']] if days is None else days        # [[start_day, end_day], [start_day, end_day], ...]
-        #self.tags = ['cyber', 'security'] if tags is None else tags  # key-word in title
-        self.tags = ['tech', 'self-driving car'] if tags is None else tags  # key-word in title
+        self.tags = ['cyber', 'security'] if tags is None else tags  # key-word in title
 
     def start_requests(self):
         for year in self.years:
