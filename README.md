@@ -8,7 +8,7 @@ Used Python 2.7 and Scrapy framework.
 Usage:
  - install Scrapy 1.3.3 (pip install scrapy)
  - install Microsoft Visual C++ Compiler for Python 2.7 (if needed)
- - scrapy crawl reu -a months=['02','03','04'] -a tags=['tech', 'self-driving']
+ - scrapy crawl reu -a months=['02','03','04'] -a tags=['tech','self-driving']
 
  Other option:
   - -a years=['2017'] (['2017','2016'])
