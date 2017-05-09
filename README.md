@@ -12,7 +12,7 @@ Usage:
 
 Other option:
   - -a years=2017
-  - -a days=01,07;20,26 (start_day,end_day;start_day,end_day; ...])
+  - -a days=01,07;20,26 (start_day,end_day;start_day,end_day; ...)
   - -a months=01,02,03
   - -a tags=cyber,news
 
