@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import scrapy
 import logging
 import os
@@ -10,10 +11,10 @@ class NewsSpider(scrapy.Spider):
         super(NewsSpider, self).__init__(*args, **kwargs)
 
         self.base_url = 'http://www.reuters.com/resources/archive/us/'
-        self.years = ['2017'] if years is None else years           # 2016,2015
-        self.months = ['03', '04'] if months is None else months    # 01,02, .., 12
-        self.days = [['26', '29']] if days is None else days        # [[start_day, end_day], [start_day, end_day], ...]
-        self.tags = ['cyber', 'security'] if tags is None else tags  # key-word in title
+        self.years = ['2017'] if years is None else years.split(',')            # 2016,2015
+        self.months = ['03'] if months is None else months.split(',')           # 01,02, .., 12
+        self.days = [['27', '29']] if days is None else self.prepare(days)      # [[st_day, e_day],[st_day, edn_day],..]
+        self.tags = ['climate', 'park'] if tags is None else tags.split(',')  # key-word in title
 
     def start_requests(self):
         for year in self.years:
@@ -30,9 +31,9 @@ class NewsSpider(scrapy.Spider):
                     start_day, end_day = my_day[0], my_day[1]
                     empty_request, do_request = False, True
                     if start_day <= date[6:] <= end_day:
-                        item = {'date': date}
+                        info = {'date': date}
                         yield scrapy.Request(url=response.urljoin(day_url), callback=self.parse_day,
-                                             meta={'item': item})
+                                             meta={'info': info})
             else:
                 empty_request = True
                 continue
@@ -40,30 +41,37 @@ class NewsSpider(scrapy.Spider):
             logging.warning('Check parameters, please')
 
     def parse_day(self, response):
+        info = response.meta['info']
         items = response.xpath("//div/a[starts-with(@href, 'http://www.reuters.com/article/')]")
         for item in items:
-            item_link = item.xpath('@href').extract_first()
-            item_title = item.xpath('text()').extract_first()
+            title, link = item.xpath('text()').extract_first(), item.xpath('@href').extract_first()
             for tag in self.tags:
-                if tag in item_title:
-                    item = response.meta['item']
-                    item['title'], item['link'] = item_title, item_link
-                    yield scrapy.Request(url=response.urljoin(item_link), callback=self.parse_article,
-                                         meta={'item': item})
+                if tag in title:
+                    info['title'], info['link'] = title, link
+                    yield scrapy.Request(url=response.urljoin(link), callback=self.parse_article, meta={'info': info})
 
     def parse_article(self, response):
-        def save_in_file():
-            path = os.path.join(os.getcwd(), 'files')
-            if not os.path.exists(path):
-                os.makedirs(path)
-            with open(os.path.join(path, item['date'] + '.txt'), 'a') as out_file:
-                out_file.write('date: ' + item['date'] + '\n')
-                out_file.write('title: ' + item['title'] + '\n')
-                out_file.write('text: ' + u''.join(item['text']).encode('utf-8').strip() + '\n')
-                out_file.write('section: ' + item['section'] + '\n')
-                out_file.write('link: ' + item['link'] + '\n\n')
+        n_info = response.meta['info']
+        n_info['title'], n_info['link'] = response.meta['info']['title'], response.url
+        n_info['section'] = response.xpath("//span[@class='article-section']/a/text()").extract_first().\
+            replace(" ", "_")
+        n_info['text'] = response.xpath("//*[@id='article-text']/p/text()").extract()
+        self.save_in_file(n_info)
 
-        item = response.meta['item']
-        item['section'] = response.xpath("//span[@class='article-section']/a/text()").extract_first().replace(' ', '_')
-        item['text'] = response.xpath("//*[@id='article-text']/p/text()").extract()
-        save_in_file()
+    @staticmethod
+    def save_in_file(_item):
+        path = os.path.join(os.getcwd())
+        if not os.path.exists(path):
+            os.makedirs(path)
+        with open(os.path.join(path, 'res' + '.txt'), 'a') as out_file:
+            out_file.write('date: ' + _item['date'] + '\n')
+            out_file.write('title: ' + _item['title'] + '\n')
+            out_file.write('text: ' + u''.join(_item['text']).encode('utf-8').strip() + '\n')
+            out_file.write('section: ' + _item['section'] + '\n')
+            out_file.write('link: ' + _item['link'] + '\n\n')
+            out_file.close()
+
+    @staticmethod
+    def prepare(_days):
+        s = _days.split(';')
+        return [x.split(',') for x in s]
