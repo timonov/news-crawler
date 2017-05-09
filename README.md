@@ -17,7 +17,7 @@ Other option:
   - -a tags=cyber,news
 
 Run by default:
-  - scrapy crawl reu
+  - scrapy crawl reu \
     Parameters:years=2017 days=27,29 months=03 tags=climate,park
 
 Usefull links:
