@@ -2,7 +2,7 @@
 
 News' crawler, which provide information from [news portal](http://www.reuters.com/) in the specified period (years, months, days). \
 News can also be selected by tag, if tag was specified (-a option). \
-Crawled articles save into $ROOT_FOLDER/files/$DATE.txt. \
+Crawled articles save into $ROOT_FOLDER/res.txt. \
 Used Python 2.7 and Scrapy framework.
 
 Usage:
